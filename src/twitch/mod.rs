@@ -18,8 +18,21 @@ use irc::client::prelude::*;
 
 use ::error::*;
 use ::Dependencies;
+use ::azuqua::Azuqua;
+
+use std::time::Duration;
 
 use ::irc::client::prelude::*;
+
+use std::ops::{
+  Deref,
+  DerefMut
+};
+
+use futures::future;
+use futures::lazy;
+
+use ::twitch::channel::TwitchMessage;
 
 pub fn start(dependencies: Arc<Dependencies>) -> Result<(), Error> {
   let channel = dependencies.channel.clone();
@@ -48,12 +61,36 @@ pub fn start(dependencies: Arc<Dependencies>) -> Result<(), Error> {
 
   let handle = reactor.inner_handle();
 
-  // TODO init http clients
-  // init azuqua client
-  // create timer future to invoke the flo
+  let https_client = utils::create_https_client(&handle, true)
+    .expect("Couldn't create https client!");
 
+  let azuqua = Azuqua::new(&dependencies.argv, https_client);
+  let dur = Duration::from_secs(dependencies.argv.interval as u64);
 
-  let message_dependencies = dependencies.clone();
+  let memo = (azuqua, dependencies.clone());
+  let timer_ft = dependencies.timer.interval(dur).from_err::<Error>().fold(memo, |(azuqua, dependencies), _| {
+    let messages = dependencies.state.write().deref_mut().take_messages();
+
+    trace!("Checking for saved messages.");
+    if messages.is_empty() {
+      return ::utils::future_ok((azuqua, dependencies));
+    }
+
+    Box::new(azuqua.invoke(messages).then(move |result| {
+      if let Err(e) = result {
+        error!("Error invoking flo: {:?}", e);
+      }
+
+      Ok::<_, Error>((azuqua, dependencies))
+    }))
+  })
+  .map(|_| ())
+  .map_err(|_| ());
+
+  handle.spawn(lazy(move || {
+    timer_ft
+  }));
+
   reactor.register_client_with_handler(client.clone(), move |client, message| {
     trace!("Recv IRC message: {:?}", message);
 
@@ -70,7 +107,15 @@ pub fn start(dependencies: Arc<Dependencies>) -> Result<(), Error> {
       return Ok(());
     }
 
-    // TODO buffer message in state
+    let twitch_messages = match TwitchMessage::from_message(message) {
+      Ok(m) => m,
+      Err(original) => {
+        warn!("Couldnt convert message: {:?}", original);
+        return Ok(());
+      }
+    };
+
+    dependencies.state.write().deref_mut().add_message(twitch_messages);
 
     Ok(())
   });

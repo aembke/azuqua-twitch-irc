@@ -33,7 +33,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "azuqua-local-irc"
+name = "azuqua_twitch_irc"
 version = "0.1.0"
 dependencies = [
  "chrono 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",

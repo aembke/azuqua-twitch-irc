@@ -66,12 +66,12 @@ fn init(argv: Arc<Argv>) -> Result<(), Error> {
   let state = Arc::new(RwLock::new(State::default()));
 
   let twitch_config = Config {
-    nickname: None,
+    nickname: Some(argv.nickname.clone()),
     server: Some("irc.chat.twitch.tv".to_owned()),
     channels: Some(vec![twitch_channel]),
     port: Some(443),
     use_ssl: Some(true),
-    password: None,
+    password: Some(argv.token.clone()),
     ..Config::default()
   };
   let channel = Channel::new(twitch_config);

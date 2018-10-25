@@ -78,6 +78,7 @@ pub fn create_https_client(handle: &Handle, keep_alive: bool) -> Result<HttpsCli
     .build(handle))
 }
 
+
 pub fn enable_capabilities(client: &IrcClient) -> Result<(), Error> {
   use irc::client::Client;
 

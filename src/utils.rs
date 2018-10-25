@@ -15,9 +15,18 @@ use futures::{
   future
 };
 
+use std::env;
+
 macro_rules! j(
   ($($arg:tt)*) => { JsonValue::from($($arg)*) }
 );
+
+macro_rules! fry {
+  ($expr:expr) => (match $expr {
+    Ok(val) => val,
+    Err(err) => return Box::new(::futures::future::result(Err(err.into())))
+  })
+}
 
 
 pub fn now_utc_ms() -> i64 {
@@ -51,4 +60,11 @@ pub fn future_error<T: 'static>(err: Error) -> Box<Future<Item=T, Error=Error>> 
 
 pub fn future_ok<T: 'static>(d: T) -> Box<Future<Item=T, Error=Error>> {
   Box::new(future::ok(d))
+}
+
+pub fn read_token_env() -> Option<String> {
+  match env::var_os("TWITCH_TOKEN") {
+    Some(t) => t.into_string().ok(),
+    None => None
+  }
 }

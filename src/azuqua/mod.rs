@@ -15,6 +15,10 @@ use ::twitch::channel::TwitchMessage;
 
 use std::collections::VecDeque;
 
+
+use json;
+use json::JsonValue;
+
 use futures::{
   Future,
   Stream
@@ -36,8 +40,20 @@ impl Azuqua {
   }
 
   pub fn invoke(&self, data: VecDeque<TwitchMessage>) -> Box<Future<Item=(), Error=Error>> {
+    let mut messages = Vec::with_capacity(data.len());
 
-    unimplemented!()
+    for message in data.into_iter() {
+      messages.push(message.into_json());
+    }
+    let messages = JsonValue::Array(messages);
+
+    debug!("Uploading {} messages to Azuqua.", messages.len());
+
+    Box::new(utils::make_invoke_request(&self.client, &self.argv.flo, &self.argv.key, &self.argv.secret, messages).and_then(|response| {
+      debug!("Invoke response {}", json::stringify_pretty(response, 2));
+
+      Ok(())
+    }))
   }
 
 }

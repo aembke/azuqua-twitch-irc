@@ -17,7 +17,9 @@ pub struct Argv {
   pub secret: String,
   pub flo: String,
   pub channel: String,
-  pub interval: u32
+  pub interval: u32,
+  pub nickname: String,
+  pub token: String
 }
 
 impl Default for Argv {
@@ -27,6 +29,8 @@ impl Default for Argv {
       secret: "".into(),
       flo: "".into(),
       channel: "".into(),
+      nickname: "".into(),
+      token: "".into(),
       interval: 3
     }
   }
@@ -63,6 +67,13 @@ pub fn read() -> Result<Arc<Argv>, Error> {
   merge_string(&matches, "f", |f| { argv.flo = f; })?;
   merge_string(&matches, "c", |c| { argv.channel = c; })?;
   merge_int(&matches, "i", |i| { argv.interval = i; })?;
+  merge_string(&matches, "n", |n| { argv.nickname = n; })?;
+
+  if let Some(token) = ::utils::read_token_env() {
+    argv.token = token;
+  }else{
+    merge_string(&matches, "t", |t| { argv.token = t; });
+  }
 
   Ok(Arc::new(argv))
 }

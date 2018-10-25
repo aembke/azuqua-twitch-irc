@@ -1,5 +1,5 @@
 [package]
-name = "azuqua-local-irc"
+name = "azuqua_twitch_irc"
 version = "0.1.0"
 authors = ["Alec Embke <aembke@gmail.com>"]
 
