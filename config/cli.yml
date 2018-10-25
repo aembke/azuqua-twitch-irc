@@ -1,0 +1,41 @@
+name: "Twitch - Azuqua IRC Adapter"
+version: "0.1"
+author: "Alec Embke <aembke@gmail.com>"
+about: "A Twitch IRC adapter to buffer and forward chat messages to Azuqua."
+args:
+  - k:
+    short: k
+    long: key
+    help: The Azuqua API key for your Azuqua user.
+    takes_value: true
+    value_name: "STRING"
+    required: true
+  - s:
+    short: s
+    long: secret
+    help: The Azuqua API secret for your Azuqua user.
+    takes_value: true
+    value_name: "STRING"
+    required: true
+  - f:
+    short: f
+    long: flo
+    help: The flo alias to invoke.
+    takes_value: true
+    value_name: "STRING"
+    required: true
+  - c:
+    short: c
+    long: channel
+    help: The Twitch channel to monitor.
+    takes_value: true
+    value_name: "STRING"
+    required: false
+  - i:
+    short: i
+    long: interval
+    help: The amount of time to wait between flo invoke calls, in seconds.
+    takes_value: true
+    value_name: "INTEGER"
+    default_value: "3"
+    required: false
